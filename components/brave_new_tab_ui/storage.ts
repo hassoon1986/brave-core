@@ -31,6 +31,7 @@ const defaultState: NewTab.State = {
     httpsUpgradesStat: 0,
     fingerprintingBlockedStat: 0
   },
+  shouldShowBrandedWallpaper: false,
   rewardsState: {
     adsEstimatedEarnings: 0,
     balance: {
@@ -49,7 +50,7 @@ const defaultState: NewTab.State = {
     walletCreating: false,
     walletCreateFailed: false,
     walletCorrupted: false
-  }
+  },
 }
 
 if (chrome.extension.inIncognitoContext) {
