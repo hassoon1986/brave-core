@@ -31,6 +31,7 @@ export default class Notification extends React.Component<Props, {}> {
   }
 
   onHideSiteRemovalNotification = () => {
+    console.log('r')
     this.props.actions.onHideSiteRemovalNotification()
   }
 

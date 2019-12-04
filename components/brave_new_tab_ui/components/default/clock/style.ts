@@ -5,6 +5,7 @@
 import styled from 'styled-components'
 
 export const StyledClock = styled<{}, 'div'>('div')`
+  grid-area: clock;
   color: #FFFFFF;
   box-sizing: border-box;
   line-height: 1;
