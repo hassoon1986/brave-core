@@ -8,6 +8,9 @@
 
 namespace features {
 
+const base::Feature kBraveBrandedWallpaper{"Branded Wallpaper",
+                                  base::FEATURE_DISABLED_BY_DEFAULT};
+
 #if defined(OS_ANDROID)
 //  Flag for Brave Rewards.
 #if defined(ARCH_CPU_X86_FAMILY) && defined(OFFICIAL_BUILD)
