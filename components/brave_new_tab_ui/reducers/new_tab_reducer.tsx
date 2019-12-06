@@ -45,7 +45,6 @@ export const newTabReducer: Reducer<NewTab.State | undefined> = (state: NewTab.S
         stats: initialDataPayload.stats,
         ...initialDataPayload.privateTabData,
         topSites: initialDataPayload.topSites,
-        shouldShowBrandedWallpaper: !!(initialDataPayload.brandedWallpaperData),
         brandedWallpaperData: initialDataPayload.brandedWallpaperData,
       }
       // TODO: only get backgroundImage if no sponsored background this time
@@ -244,12 +243,17 @@ export const newTabReducer: Reducer<NewTab.State | undefined> = (state: NewTab.S
 
     case types.NEW_TAB_PREFERENCES_UPDATED:
       const preferences = payload as Preferences
-      const shouldChangeBackgroundImage =
-        !state.showBackgroundImage && preferences.showBackgroundImage
       state = {
         ...state,
         ...preferences
       }
+      // Remove branded wallpaper when opting out
+      if (!preferences.brandedWallpaperOptIn && state.brandedWallpaperData) {
+        state.brandedWallpaperData = undefined
+      }
+      // Get a new wallpaper image if turning that feature on
+      const shouldChangeBackgroundImage =
+        !state.showBackgroundImage && preferences.showBackgroundImage
       if (shouldChangeBackgroundImage) {
         state.backgroundImage = backgroundAPI.randomBackgroundImage()
       }
