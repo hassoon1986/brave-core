@@ -15,7 +15,6 @@ import org.chromium.base.annotations.CalledByNative;
 
 public class BraveNotificationPlatformBridge extends NotificationPlatformBridge {
     private @NotificationType int mNotificationType;
-    private static BraveNotificationPlatformBridge sInstance;
 
     @CalledByNative
     private static BraveNotificationPlatformBridge create(long nativeNotificationPlatformBridge) {
@@ -25,10 +24,10 @@ public class BraveNotificationPlatformBridge extends NotificationPlatformBridge 
         }
 
         sInstance = new BraveNotificationPlatformBridge(nativeNotificationPlatformBridge);
-        return sInstance;
+        return (BraveNotificationPlatformBridge) sInstance;
     }
 
-    private BraveNotificationPlatformBridge(long nativeNotificationPlatformBridge) {
+    public BraveNotificationPlatformBridge(long nativeNotificationPlatformBridge) {
         super(nativeNotificationPlatformBridge);
     }
 

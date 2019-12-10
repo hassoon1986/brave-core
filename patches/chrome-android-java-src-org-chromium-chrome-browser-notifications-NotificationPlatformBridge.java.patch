@@ -1,7 +1,25 @@
 diff --git a/chrome/android/java/src/org/chromium/chrome/browser/notifications/NotificationPlatformBridge.java b/chrome/android/java/src/org/chromium/chrome/browser/notifications/NotificationPlatformBridge.java
-index c33c3fe1a00de75a8c663f0f8af27745a50bffae..3e815decc8bb4cdfca2b7bd0fa2e5f15439db38e 100644
+index c33c3fe1a00de75a8c663f0f8af27745a50bffae..fcddf5efe2ade494802d3382c419a97236d8cd21 100644
 --- a/chrome/android/java/src/org/chromium/chrome/browser/notifications/NotificationPlatformBridge.java
 +++ b/chrome/android/java/src/org/chromium/chrome/browser/notifications/NotificationPlatformBridge.java
+@@ -73,7 +73,7 @@ public class NotificationPlatformBridge {
+ 
+     private static final int[] EMPTY_VIBRATION_PATTERN = new int[0];
+ 
+-    private static NotificationPlatformBridge sInstance;
++    protected static NotificationPlatformBridge sInstance;
+ 
+     private static NotificationManagerProxy sNotificationManagerOverride;
+ 
+@@ -98,7 +98,7 @@ public class NotificationPlatformBridge {
+                 "There must only be a single NotificationPlatformBridge.");
+         }
+ 
+-        sInstance = new NotificationPlatformBridge(nativeNotificationPlatformBridge);
++        sInstance = (NotificationPlatformBridge) new BraveNotificationPlatformBridge(nativeNotificationPlatformBridge);
+         return sInstance;
+     }
+ 
 @@ -126,7 +126,7 @@ public class NotificationPlatformBridge {
          sNotificationManagerOverride = notificationManager;
      }
