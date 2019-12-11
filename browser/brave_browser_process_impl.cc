@@ -15,8 +15,10 @@
 #include "brave/browser/component_updater/brave_component_updater_configurator.h"
 #include "brave/browser/component_updater/brave_component_updater_delegate.h"
 #include "brave/browser/profiles/brave_profile_manager.h"
+#include "brave/browser/themes/brave_dark_mode_utils.h"
 #include "brave/browser/tor/buildflags.h"
 #include "brave/browser/ui/brave_browser_command_controller.h"
+#include "brave/common/pref_names.h"
 #include "brave/components/brave_component_updater/browser/local_data_files_service.h"
 #include "brave/components/brave_shields/browser/ad_block_custom_filters_service.h"
 #include "brave/components/brave_shields/browser/ad_block_regional_service_manager.h"
@@ -33,6 +35,7 @@
 #include "chrome/common/chrome_paths.h"
 #include "components/component_updater/component_updater_service.h"
 #include "components/component_updater/timer_update_scheduler.h"
+#include "components/prefs/pref_service.h"
 #include "content/public/browser/browser_thread.h"
 
 #if BUILDFLAG(ENABLE_NATIVE_NOTIFICATIONS)
@@ -67,6 +70,10 @@
 #include "chrome/browser/android/component_updater/background_task_update_scheduler.h"
 #else
 #include "chrome/browser/ui/browser.h"
+#endif
+
+#if defined (OS_WIN)
+#include "ui/native_theme/native_theme_win.h"
 #endif
 
 BraveBrowserProcessImpl* g_brave_browser_process = nullptr;
@@ -109,6 +116,14 @@ BraveBrowserProcessImpl::BraveBrowserProcessImpl(StartupData* startup_data)
 
 void BraveBrowserProcessImpl::Init() {
   BrowserProcessImpl::Init();
+
+#if !defined(OS_ANDROID)
+  UpdateBraveDarkMode();
+  pref_change_registrar_.Add(
+      kBraveDarkMode,
+      base::Bind(&BraveBrowserProcessImpl::OnBraveDarkModeChanged,
+                 base::Unretained(this)));
+#endif
 
 #if BUILDFLAG(ENABLE_TOR)
   pref_change_registrar_.Add(
@@ -251,6 +266,29 @@ BraveBrowserProcessImpl::local_data_files_service() {
             brave_component_updater_delegate());
   return local_data_files_service_.get();
 }
+
+#if !defined(OS_ANDROID)
+void BraveBrowserProcessImpl::UpdateBraveDarkMode() {
+  dark_mode::BraveDarkModeType type = dark_mode::GetBraveDarkModeType();
+#if defined(OS_WIN)
+  // On Windows, we should block os theme change notification if user doesn't
+  // choose same as Windows option. Windows doesn't support per-application
+  // theme mode. If users stick to dark or light, we should prevent it.
+  // On macOS, this isn't needed because it supports per-application theme.
+  // So, if application set dark/light appearance explicitely, macOS respect it.
+  ui::IgnoreSystemDarkModeChange(
+      type != dark_mode::BraveDarkModeType::BRAVE_DARK_MODE_TYPE_DEFAULT);
+#endif
+
+  // Update with proper system theme to make brave theme and base ui components
+  // theme use same theme.
+  dark_mode::SetSystemDarkMode(type);
+}
+
+void BraveBrowserProcessImpl::OnBraveDarkModeChanged() {
+  UpdateBraveDarkMode();
+}
+#endif
 
 #if BUILDFLAG(ENABLE_TOR)
 extensions::BraveTorClientUpdater*

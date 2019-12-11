@@ -161,7 +161,6 @@ source_set("browser_process") {
     "//content/public/common",
     "//extensions/buildflags",
     "//brave/chromium_src:browser",
-    "themes",
     "//services/network/public/cpp",
     "//services/service_manager/embedder",
     "//third_party/widevine/cdm:buildflags",
@@ -191,6 +190,7 @@ source_set("browser_process") {
       "importer",
       "infobars",
       "//brave/app:brave_generated_resources_grit",
+      "//brave/browser/themes",
     ]
   } else {
     sources += [

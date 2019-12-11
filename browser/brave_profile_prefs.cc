@@ -27,6 +27,7 @@
 #endif
 
 #if !defined(OS_ANDROID)
+#include "brave/browser/themes/brave_dark_mode_utils.h"
 #include "chrome/browser/first_run/first_run.h"
 #endif
 
@@ -46,6 +47,10 @@ void RegisterProfilePrefsForMigration(
     user_prefs::PrefRegistrySyncable* registry) {
 #if BUILDFLAG(ENABLE_WIDEVINE)
   RegisterWidevineProfilePrefsForMigration(registry);
+#endif
+
+#if !defined(OS_ANDROID)
+  dark_mode::RegisterBraveDarkModePrefsForMigration(registry);
 #endif
 }
 

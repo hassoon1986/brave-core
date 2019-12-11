@@ -13,6 +13,10 @@
 #include "brave/browser/widevine/widevine_utils.h"
 #endif
 
+#if !defined(OS_ANDROID)
+#include "brave/browser/themes/brave_dark_mode_utils.h"
+#endif
+
 #define MigrateObsoleteProfilePrefs MigrateObsoleteProfilePrefs_ChromiumImpl
 #include "../../../../chrome/browser/prefs/browser_prefs.cc"  // NOLINT
 #undef MigrateObsoleteProfilePrefs
@@ -27,4 +31,9 @@ void MigrateObsoleteProfilePrefs(Profile* profile) {
 #endif
   // Added 11/2019.
   MigrateBraveSyncPrefs(profile->GetPrefs());
+
+#if !defined(OS_ANDROID)
+  // Added 12/2019.
+  dark_mode::MigrateBraveDarkModePrefs(profile);
+#endif
 }

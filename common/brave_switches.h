@@ -22,7 +22,7 @@ extern const char kDisableWebTorrentExtension[];
 
 extern const char kRewards[];
 
-extern const char kUiMode[];
+extern const char kDarkMode[];
 
 extern const char kUpgradeFromMuon[];
 

@@ -103,6 +103,11 @@ class BraveBrowserProcessImpl : public BrowserProcessImpl {
   void OnTorEnabledChanged();
 #endif
 
+#if !defined(OS_ANDROID)
+  void UpdateBraveDarkMode();
+  void OnBraveDarkModeChanged();
+#endif
+
   BraveComponent::Delegate* brave_component_updater_delegate();
 
   // local_data_files_service_ should always be first because it needs

@@ -30,6 +30,7 @@
 #endif
 
 #if !defined(OS_ANDROID)
+#include "brave/browser/themes/brave_dark_mode_utils.h"
 #include "brave/components/p3a/p3a_core_metrics.h"
 #endif  // !defined(OS_ANDROID)
 
@@ -68,6 +69,7 @@ void RegisterLocalStatePrefs(PrefRegistrySimple* registry) {
 
   BraveWindowTracker::RegisterPrefs(registry);
   BraveUptimeTracker::RegisterPrefs(registry);
+  dark_mode::RegisterBraveDarkModeLocalStatePrefs(registry);
 #endif
 
 #if BUILDFLAG(ENABLE_WIDEVINE)
