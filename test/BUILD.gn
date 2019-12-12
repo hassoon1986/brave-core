@@ -283,6 +283,7 @@ test("brave_unit_tests") {
 
   if (brave_rewards_enabled) {
     sources += [
+      "//brave/vendor/bat-native-ledger/src/bat/ledger/internal/common/bind_util.cc",
       "//brave/vendor/bat-native-ledger/src/bat/ledger/internal/contribution/contribution_unittest.cc",
       "//brave/vendor/bat-native-ledger/src/bat/ledger/internal/contribution/contribution_unblinded_unittest.cc",
       "//brave/vendor/bat-native-ledger/src/bat/ledger/internal/contribution/phase_two_unittest.cc",
