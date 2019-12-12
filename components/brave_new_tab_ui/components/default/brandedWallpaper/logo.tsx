@@ -4,23 +4,21 @@
 // you can obtain one at http://mozilla.org/MPL/2.0/.
 
 import * as React from 'react'
-import styled from 'styled-components'
+import { OpenNewIcon } from 'brave-ui/components/icons'
 
 import createWidget from '../widget/index'
+import * as S from './logo-style'
 
 interface Props {
   data: NewTab.BrandedWallpaperLogo
 }
 
-const LogoImage = styled('img')`
-  width: 170px;
-`
-
 function Logo ({data}: Props) {
   // TODO: support different locales
-  return <a href={data.destinationUrl}>
-    <LogoImage src={data.image} alt={data.alt} />
-  </a>
+  return <S.Anchor href={data.destinationUrl}>
+    <S.Image src={data.image} alt={data.alt} />
+    <S.Indicator><OpenNewIcon /></S.Indicator>
+  </S.Anchor>
 }
 
 export default createWidget(Logo)
