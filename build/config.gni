@@ -26,6 +26,7 @@ declare_args() {
   build_omaha = false
   tag_ap =""
   target_apk_base=""
+  target_apk_name=""
 
   skip_signing = false
 }
