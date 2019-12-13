@@ -243,6 +243,9 @@ class RewardsDOMHandler : public WebUIMessageHandler,
       const std::string& hint,
       const std::string& captcha_id);
 
+  void OnClaimPromotionAndroid(const int32_t result,
+      std::unique_ptr<brave_rewards::Promotion> promotion);
+
   void OnAttestPromotion(
       const std::string& promotion_id,
       const int32_t result,
@@ -622,10 +625,22 @@ void RewardsDOMHandler::ClaimPromotion(const base::ListValue* args) {
   }
 
   const std::string promotion_id = args->GetList()[0].GetString();
+
+#if !defined(OS_ANDROID)
   rewards_service_->ClaimPromotion(
-      base::Bind(&RewardsDOMHandler::OnClaimPromotion,
+	    base::Bind(&RewardsDOMHandler::OnClaimPromotion,
           weak_factory_.GetWeakPtr(),
           promotion_id));
+#else
+  rewards_service_->ClaimPromotion(promotion_id,
+        base::Bind(&RewardsDOMHandler::OnClaimPromotionAndroid,
+            weak_factory_.GetWeakPtr()));
+#endif
+}
+
+void RewardsDOMHandler::OnClaimPromotionAndroid(const int32_t result,
+        std::unique_ptr<brave_rewards::Promotion> promotion) {
+  // do nothing here. The UI receives "brave_rewards.promotionFinish".
 }
 
 
