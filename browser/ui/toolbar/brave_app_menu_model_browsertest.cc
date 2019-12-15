@@ -5,154 +5,51 @@
 
 #include "brave/browser/ui/toolbar/brave_app_menu_model.h"
 
-#include <memory>
+#include <algorithm>
+#include <vector>
 
-#include "brave/app/brave_command_ids.h"
-#include "brave/browser/tor/buildflags.h"
-#include "brave/browser/ui/brave_browser_command_controller.h"
-#include "brave/common/pref_names.h"
-#include "brave/common/tor/pref_names.h"
-#include "brave/components/brave_rewards/browser/buildflags/buildflags.h"
-#include "brave/components/brave_sync/buildflags/buildflags.h"
-#include "brave/components/brave_wallet/browser/buildflags/buildflags.h"
-#include "chrome/browser/chrome_browser_main.h"
-#include "chrome/browser/chrome_notification_types.h"
-#include "chrome/browser/profiles/profile.h"
-#include "chrome/browser/profiles/profile_window.h"
-#include "chrome/browser/ui/browser_list.h"
+#include "chrome/app/chrome_command_ids.h"
 #include "chrome/browser/ui/views/frame/browser_view.h"
 #include "chrome/browser/ui/views/toolbar/toolbar_view.h"
 #include "chrome/test/base/in_process_browser_test.h"
-#include "components/prefs/pref_service.h"
-#include "content/public/browser/notification_service.h"
-#include "content/public/test/test_utils.h"
-
-#if BUILDFLAG(ENABLE_TOR)
-#include "brave/browser/tor/tor_profile_service.h"
-#endif
 
 using BraveAppMenuBrowserTest = InProcessBrowserTest;
 
-IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, BasicTest) {
+// Test brave menu order test.
+// Brave menu is inserted based on corresponding commands enable status.
+// So, this doesn't test for each profiles(normal, private, tor and guest).
+// Instead, BraveBrowserCommandControllerTest will do that.
+IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, MenuOrderTest) {
   auto* browser_view = BrowserView::GetBrowserViewForBrowser(browser());
   BraveAppMenuModel normal_model(browser_view->toolbar(), browser());
   normal_model.Init();
 
-  // Check normal window has both menu items.
-  // -1 means |model| doesn't have passed command id.
-  EXPECT_NE(-1, normal_model.GetIndexOfCommandId(IDC_SHOW_BRAVE_REWARDS));
-  EXPECT_NE(-1, normal_model.GetIndexOfCommandId(IDC_SHOW_BRAVE_SYNC));
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
-  EXPECT_NE(-1, normal_model.GetIndexOfCommandId(IDC_SHOW_BRAVE_WALLET));
-#else
-  EXPECT_EQ(-1, normal_model.GetIndexOfCommandId(IDC_SHOW_BRAVE_WALLET));
-#endif
+  int commands_in_order[] = {
+    IDC_NEW_TAB,
+    IDC_NEW_TOR_CONNECTION_FOR_SITE,
+    IDC_NEW_WINDOW,
+    IDC_NEW_INCOGNITO_WINDOW,
+    IDC_NEW_OFFTHERECORD_WINDOW_TOR,
+    IDC_SHOW_BRAVE_REWARDS,
+    IDC_RECENT_TABS_MENU,
+    IDC_BOOKMARKS_MENU,
+    IDC_SHOW_DOWNLOADS,
+    IDC_SHOW_BRAVE_WALLET,
+    IDC_MANAGE_EXTENSIONS,
+    IDC_SHOW_BRAVE_SYNC,
+    IDC_SHOW_BRAVE_ADBLOCK,
+    IDC_ADD_NEW_PROFILE,
+    IDC_OPEN_GUEST_PROFILE,
+    IDC_SHOW_BRAVE_WEBCOMPAT_REPORTER
+  };
 
-  auto* command_controller = browser()->command_controller();
-#if BUILDFLAG(ENABLE_TOR)
-  EXPECT_NE(
-      -1, normal_model.GetIndexOfCommandId(IDC_NEW_OFFTHERECORD_WINDOW_TOR));
-  // Check new tor browser command is only enabled for normal window.
-  EXPECT_FALSE(
-      command_controller->IsCommandEnabled(IDC_NEW_TOR_CONNECTION_FOR_SITE));
-  EXPECT_TRUE(
-      command_controller->IsCommandEnabled(IDC_NEW_OFFTHERECORD_WINDOW_TOR));
-#endif
-
-#if BUILDFLAG(BRAVE_REWARDS_ENABLED)
-  EXPECT_TRUE(command_controller->IsCommandEnabled(IDC_SHOW_BRAVE_REWARDS));
-#else
-  EXPECT_FALSE(command_controller->IsCommandEnabled(IDC_SHOW_BRAVE_REWARDS));
-#endif
-
-#if BUILDFLAG(ENABLE_BRAVE_SYNC)
-  EXPECT_TRUE(command_controller->IsCommandEnabled(IDC_SHOW_BRAVE_SYNC));
-#else
-  EXPECT_FALSE(command_controller->IsCommandEnabled(IDC_SHOW_BRAVE_SYNC));
-#endif
-
-#if BUILDFLAG(BRAVE_WALLET_ENABLED)
-  EXPECT_TRUE(command_controller->IsCommandEnabled(IDC_SHOW_BRAVE_WALLET));
-#else
-  EXPECT_FALSE(command_controller->IsCommandEnabled(IDC_SHOW_BRAVE_WALLET));
-#endif
-
-  // Create proviate browser.
-  auto* private_browser = CreateIncognitoBrowser();
-  auto* private_browser_view =
-      BrowserView::GetBrowserViewForBrowser(private_browser);
-  BraveAppMenuModel private_model(private_browser_view->toolbar(),
-                                  private_browser);
-  private_model.Init();
-
-  // Check private window has both menu items.
-  // -1 means |model| doesn't have passed command id.
-  EXPECT_NE(-1, private_model.GetIndexOfCommandId(IDC_SHOW_BRAVE_REWARDS));
-  EXPECT_NE(-1, private_model.GetIndexOfCommandId(IDC_SHOW_BRAVE_SYNC));
-
-  command_controller = private_browser->command_controller();
-#if BUILDFLAG(BRAVE_REWARDS_ENABLED)
-  EXPECT_TRUE(command_controller->IsCommandEnabled(IDC_SHOW_BRAVE_REWARDS));
-#else
-  EXPECT_FALSE(command_controller->IsCommandEnabled(IDC_SHOW_BRAVE_REWARDS));
-#endif
-#if BUILDFLAG(ENABLE_BRAVE_SYNC)
-  EXPECT_TRUE(command_controller->IsCommandEnabled(IDC_SHOW_BRAVE_SYNC));
-#else
-  EXPECT_FALSE(command_controller->IsCommandEnabled(IDC_SHOW_BRAVE_SYNC));
-#endif
-
-  content::WindowedNotificationObserver browser_creation_observer(
-      chrome::NOTIFICATION_BROWSER_OPENED,
-      content::NotificationService::AllSources());
-  profiles::SwitchToGuestProfile(ProfileManager::CreateCallback());
-
-  browser_creation_observer.Wait();
-
-  auto* browser_list = BrowserList::GetInstance();
-  Browser* guest_browser = nullptr;
-  for (Browser* browser : *browser_list) {
-    if (browser->profile()->IsGuestSession()) {
-      guest_browser = browser;
-      break;
-    }
+  std::vector<int> commands_index;
+  for (int id : commands_in_order) {
+    int index = normal_model.GetIndexOfCommandId(id);
+    if (index != -1)
+      commands_index.push_back(index);
   }
-  DCHECK(guest_browser);
 
-  auto* guest_browser_view =
-      BrowserView::GetBrowserViewForBrowser(guest_browser);
-  BraveAppMenuModel guest_model(guest_browser_view->toolbar(), guest_browser);
-  guest_model.Init();
-
-  // Check guest window doesn't have them.
-  // -1 means |model| doesn't have passed command id.
-  EXPECT_EQ(-1, guest_model.GetIndexOfCommandId(IDC_SHOW_BRAVE_REWARDS));
-  EXPECT_EQ(-1, guest_model.GetIndexOfCommandId(IDC_SHOW_BRAVE_SYNC));
-  EXPECT_EQ(-1, guest_model.GetIndexOfCommandId(IDC_SHOW_BRAVE_WALLET));
-
-  command_controller = guest_browser->command_controller();
-  EXPECT_FALSE(command_controller->IsCommandEnabled(IDC_SHOW_BRAVE_REWARDS));
-  EXPECT_FALSE(command_controller->IsCommandEnabled(IDC_SHOW_BRAVE_SYNC));
-  EXPECT_FALSE(command_controller->IsCommandEnabled(IDC_SHOW_BRAVE_WALLET));
+  EXPECT_TRUE(std::is_sorted(std::begin(commands_index),
+                             std::end(commands_index)));
 }
-
-#if BUILDFLAG(ENABLE_TOR)
-IN_PROC_BROWSER_TEST_F(BraveAppMenuBrowserTest, TorAppMenuTest) {
-  // Tor is enabled by default. Change pref to disable.
-  tor::TorProfileService::SetTorDisabled(true);
-
-  auto* browser_view = BrowserView::GetBrowserViewForBrowser(browser());
-  BraveAppMenuModel normal_model(browser_view->toolbar(), browser());
-  normal_model.Init();
-
-  // -1 means |model| doesn't have passed command id.
-  EXPECT_EQ(
-      -1, normal_model.GetIndexOfCommandId(IDC_NEW_OFFTHERECORD_WINDOW_TOR));
-  auto* command_controller = browser()->command_controller();
-  // Check tor browser commands are disabled.
-  EXPECT_FALSE(
-      command_controller->IsCommandEnabled(IDC_NEW_TOR_CONNECTION_FOR_SITE));
-  EXPECT_FALSE(
-      command_controller->IsCommandEnabled(IDC_NEW_OFFTHERECORD_WINDOW_TOR));
-}
-#endif
